@@ -1,43 +1,62 @@
 package ru.netology.web.test;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.netology.web.data.DataHelper;
+import ru.netology.web.page.DashboardPage;
 import ru.netology.web.page.LoginPageV1;
 import ru.netology.web.page.LoginPageV2;
 import ru.netology.web.page.LoginPageV3;
 
 import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.sessionId;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.netology.web.data.DataHelper.*;
 
 class MoneyTransferTest {
-    @Test
-    void shouldTransferMoneyBetweenOwnCardsV1() {
-      open("http://localhost:9999");
-      var loginPage = new LoginPageV1();
-//    var loginPage = open("http://localhost:9999", LoginPageV1.class);
-      var authInfo = DataHelper.getAuthInfo();
-      var verificationPage = loginPage.validLogin(authInfo);
-      var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-      verificationPage.validVerify(verificationCode);
-    }
+  DashboardPage dashboardPage;
 
-  @Test
-  void shouldTransferMoneyBetweenOwnCardsV2() {
+  @BeforeEach
+  public void Authentication() {
     open("http://localhost:9999");
-    var loginPage = new LoginPageV2();
-//    var loginPage = open("http://localhost:9999", LoginPageV2.class);
-    var authInfo = DataHelper.getAuthInfo();
-    var verificationPage = loginPage.validLogin(authInfo);
-    var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-    verificationPage.validVerify(verificationCode);
+    var LoginPageV1 = new LoginPageV1();
+    var autoInfo = DataHelper.getAuthInfo();
+    var verificationPage = LoginPageV1.validLogin(autoInfo);
+    var verificationCode = DataHelper.getVerificationCodeFor(autoInfo);
+    dashboardPage = verificationPage.validVerify(verificationCode);
   }
 
   @Test
-  void shouldTransferMoneyBetweenOwnCardsV3() {
-    var loginPage = open("http://localhost:9999", LoginPageV3.class);
-    var authInfo = DataHelper.getAuthInfo();
-    var verificationPage = loginPage.validLogin(authInfo);
-    var verificationCode = DataHelper.getVerificationCodeFor(authInfo);
-    verificationPage.validVerify(verificationCode);
+  void transferFromCardToCard() {
+    var oneCardNumber = getOneCardNumber();
+    var twoCardNumber = getTwoCardNumber();
+    var oneCardBalance = dashboardPage.getCardBalance(0);
+    var twoCardBalance = dashboardPage.getCardBalance(1);
+    var amount = 10000;
+    var expectedBalanceOneCard = oneCardBalance - amount;
+    var expectedBalanceTwoCard = twoCardBalance + amount;
+    var transferPages = dashboardPage.selectCardToTransfer(twoCardNumber);
+    dashboardPage = transferPages.setRefill(10000,getOneCardNumber());
+    var actualBalanceOneCard = dashboardPage.getCardBalance(0);
+    var actualBalanceTwoCard = dashboardPage.getCardBalance(1);
+    assertEquals(expectedBalanceOneCard, actualBalanceOneCard);
+    assertEquals(expectedBalanceTwoCard ,actualBalanceTwoCard);
+  }
+  @Test
+  void cardBalanceChecksFromTheCardListPage() {
+    var oneCardNumber = getOneCardNumber();
+    var twoCardNumber = getTwoCardNumber();
+    var oneCardBalance = dashboardPage.getCardBalance(0);
+    var twoCardBalance = dashboardPage.getCardBalance(1);
+    var amount = 20000;
+    var transferPages = dashboardPage.selectCardToTransfer(oneCardNumber);
+    transferPages.refill(20000,getTwoCardNumber());
+    transferPages.setErrorNotification("Перевод не выполнен.Сумма перевода превышает баланс на карте");
+    var actualBalanceOneCard = dashboardPage.getCardBalance(0);
+    var actualBalanceTwoCard = dashboardPage.getCardBalance(1);
+    assertEquals(oneCardBalance, actualBalanceOneCard);
+    assertEquals(twoCardBalance, actualBalanceTwoCard);
   }
 }
 
