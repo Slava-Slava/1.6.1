@@ -29,11 +29,11 @@ class MoneyTransferTest {
     var twoCardNumber = getTwoCardNumber();
     var oneCardBalance = dashboardPage.getCardBalance(0);
     var twoCardBalance = dashboardPage.getCardBalance(1);
-    var amount = 10000;
+    var amount = DataHelper.transferValidAmount(oneCardBalance);
     var expectedBalanceOneCard = oneCardBalance - amount;
     var expectedBalanceTwoCard = twoCardBalance + amount;
     var transferPages = dashboardPage.selectCardToTransfer(twoCardNumber);
-    dashboardPage = transferPages.setRefill(10000,getOneCardNumber());
+    dashboardPage = transferPages.setRefill(amount,getOneCardNumber());
     var actualBalanceOneCard = dashboardPage.getCardBalance(0);
     var actualBalanceTwoCard = dashboardPage.getCardBalance(1);
     assertEquals(expectedBalanceOneCard, actualBalanceOneCard);
@@ -45,9 +45,9 @@ class MoneyTransferTest {
     var twoCardNumber = getTwoCardNumber();
     var oneCardBalance = dashboardPage.getCardBalance(0);
     var twoCardBalance = dashboardPage.getCardBalance(1);
-    var amount = 20000;
+    var amount = DataHelper.transferInvalidAmount(twoCardBalance);
     var transferPages = dashboardPage.selectCardToTransfer(oneCardNumber);
-    transferPages.refill(20000,getTwoCardNumber());
+    transferPages.refill(amount,getTwoCardNumber());
     transferPages.setErrorNotification("Перевод не выполнен.Сумма перевода превышает баланс на карте");
     var actualBalanceOneCard = dashboardPage.getCardBalance(0);
     var actualBalanceTwoCard = dashboardPage.getCardBalance(1);

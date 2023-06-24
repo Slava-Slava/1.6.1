@@ -40,5 +40,12 @@ public class DataHelper {
     public static CardInfo getTwoCardNumber() {
         return new CardInfo("5559 0000 0000 0002", "0f3f5c2a-249e-4c3d-8287-09f7a039391d");
     }
+    public static int transferValidAmount(int balance) {
+        return new Random().nextInt(balance) + 1;
+    }
+
+    public static int transferInvalidAmount(int balance) {
+        return Math.abs(balance) + new Random().nextInt(10_000);
+    }
 
 }
